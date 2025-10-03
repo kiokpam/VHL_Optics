@@ -1,47 +1,42 @@
-Đây là nội dung **README.md** mới đã được cập nhật cho phù hợp với các thay đổi của dự án:
-
-```markdown
 ## VHL Optics – PPM Prediction (Global Model)
 
-**VHL Optics** là một dự án AI nhằm dự đoán nồng độ (ppm) của mẫu hóa chất dựa trên ảnh chụp từ nhiều thiết bị di động khác nhau. Ở phiên bản đầu, mỗi dòng máy được huấn luyện một mô hình riêng; tuy nhiên phiên bản hiện tại đã được **refactor** để sử dụng **một mô hình chung** cho toàn bộ thiết bị. Thông tin về điện thoại không còn là đặc trưng huấn luyện, giúp đơn giản hóa quy trình và mở rộng dễ dàng cho các thiết bị mới.
+**VHL Optics** is an AI project for predicting the concentration (ppm) of chemical samples based on images captured from various mobile devices. In the initial version, a separate model was trained for each device type. However, the current version has been **refactored** to use **a single global model** for all devices. Device information is no longer used as a training feature, simplifying the workflow and making it easier to support new devices.
 
-### Điểm nổi bật
+### Highlights
 
-- **Xử lý dữ liệu tự động**: quét dữ liệu thô, tạo file metadata và cắt vùng quan tâm (ROI) để chuẩn hóa ảnh.
-- **Trích xuất đặc trưng hồi quy**: tính toán thống kê kênh màu, contrast GLCM, entropy, mật độ cạnh, v.v. cho mỗi ảnh.
-- **Mô hình hồi quy duy nhất**: sử dụng RandomForest hoặc XGBoost để học từ toàn bộ dữ liệu, không cần cột điện thoại.
-- **Giao diện trực quan**: hỗ trợ Streamlit để người dùng upload ảnh và nhận kết quả dự đoán ppm ngay lập tức.
-- **Batch prediction**: dự đoán hàng loạt từ file đặc trưng tổng hợp và lưu kết quả ra CSV.
+- **Automated data processing**: Scans raw data, generates metadata files, and crops regions of interest (ROI) to standardize images.
+- **Feature extraction for regression**: Computes color channel statistics, GLCM contrast, entropy, edge density, etc. for each image.
+- **Unified regression model**: Uses RandomForest or XGBoost trained on all data, without device columns.
+- **User-friendly interface**: Streamlit app for uploading images and instantly receiving ppm predictions.
+- **Batch prediction**: Predicts ppm for multiple samples from a feature file and saves results to CSV.
 
-### Cấu trúc thư mục
+### Project Structure
 
 ```
-
-├── app.py           # Ứng dụng Streamlit đơn giản cho dự đoán đơn lẻ và batch
+├── app.py           # Simple Streamlit app for single and batch predictions
 ├── main.py          # Entry point: e2e pipeline, feature extraction, training, Streamlit
-├── config.py        # Định nghĩa đường dẫn dữ liệu và hằng số
-├── loading.py       # Tạo và nạp metadata
-├── processing.py    # Xử lý ảnh, trích xuất ROI và ảnh vuông
-├── normalize.py     # Trích xuất đặc trưng hồi quy (không chứa phone)
-├── model.py         # Huấn luyện mô hình hồi quy (per‑phone & global)
-├── predict.py       # Dự đoán ppm (đơn lẻ & batch)
-├── roi.py           # Các hàm hỗ trợ cắt ROI
-├── squares.py       # Phát hiện contour hình vuông
-├── data/            # (tự tạo) chứa dữ liệu thô và ảnh đã xử lý
+├── config.py        # Data paths and constants
+├── loading.py       # Metadata creation and loading
+├── processing.py    # Image processing, ROI and square cropping
+├── normalize.py     # Regression feature extraction (no device info)
+├── model.py         # Regression model training (per-device & global)
+├── predict.py       # PPM prediction (single & batch)
+├── roi.py           # ROI cropping utilities
+├── squares.py       # Square contour detection
+├── data/            # (auto-created) raw and processed data
+```
 
-````
+### Installation
 
-### Cài đặt
-
-1. **Clone dự án** và cài đặt các thư viện cần thiết:
+1. **Clone the repository** and install dependencies:
 
 ```bash
 git clone <repository-url>
 cd VHL_Optics_Regressor
 pip install -r requirements.txt
-````
+```
 
-Nếu không có file `requirements.txt`, cài đặt tối thiểu các thư viện:
+If `requirements.txt` is missing, install at least:
 
 ```
 numpy
@@ -54,43 +49,43 @@ scikit-image
 tqdm
 ```
 
-2. **Chuẩn bị dữ liệu**: đặt dữ liệu ảnh gốc vào `data/full/HP5_data` theo cấu trúc: *loại hóa chất / điện thoại / lần chụp / ảnh*. Ứng dụng sẽ tự động quét và tạo metadata.
+2. **Prepare data**: Place raw images in `data/full/HP5_data` with the structure: *chemical_type / device / capture_id / image*. The app will automatically scan and generate metadata.
 
-### Sử dụng
+### Usage
 
-#### Chạy toàn bộ pipeline (e2e)
+#### Run the full pipeline (e2e)
 
-Lệnh sau sẽ tạo metadata, xử lý ảnh, trích xuất đặc trưng và huấn luyện mô hình chung:
+This command will generate metadata, process images, extract features, and train the global model:
 
 ```bash
 python main.py e2e
 ```
 
-Sau khi chạy, các file đặc trưng sẽ được lưu trong `data/csv/features_all.csv` và các mô hình huấn luyện được lưu trong `data/models/`.
+After running, feature files will be saved to `data/csv/features_all.csv` and trained models to `data/models/`.
 
-#### Trích xuất đặc trưng và huấn luyện riêng
+#### Extract features and train separately
 
-Bạn có thể chạy từng bước riêng biệt:
+You can run each step individually:
 
 ```bash
-# Trích xuất đặc trưng (khi đã có ảnh vuông)
+# Feature extraction (when square images are ready)
 python main.py feature
 
-# Huấn luyện mô hình chung (khi đã có features_all.csv)
+# Train the global model (when features_all.csv is available)
 python main.py train
 ```
 
-#### Dự đoán ppm cho một ảnh
+#### Predict ppm for a single image
 
-Sử dụng giao diện Streamlit đơn giản:
+Use the Streamlit interface:
 
 ```bash
 streamlit run app.py
 ```
 
-Hoặc chạy trực tiếp `python main.py` (mặc định sẽ mở giao diện Streamlit). Người dùng chỉ cần upload ảnh, chọn mô hình (**RF** hoặc **XGB**) và nhận kết quả ppm. Không cần nhập dòng máy.
+Or run `python main.py` (defaults to Streamlit). Users can upload an image, select a model (**RF** or **XGB**), and get the ppm result. No device info required.
 
-Bạn cũng có thể gọi hàm dự đoán từ mã Python:
+You can also call the prediction function from Python:
 
 ```python
 from predict import predict_regression_general
@@ -101,7 +96,7 @@ print(f"Predicted ppm: {ppm:.2f}")
 
 #### Batch prediction
 
-Để dự đoán hàng loạt, chạy từ Streamlit (`app.py`) hoặc sử dụng hàm:
+For batch predictions, use the Streamlit app (`app.py`) or call:
 
 ```python
 from predict import predict_test_set_general
@@ -110,22 +105,20 @@ results = predict_test_set_general(output_dir='batch_predictions')
 print(results.head())
 ```
 
-Kết quả được lưu vào `predictions_general.csv` với cột: `id_img`, `true_ppm`, `pred_rf_ppm`, `pred_xgb_ppm`, `diff_rf_pct`, `diff_xgb_pct`.
+Results are saved to `predictions_general.csv` with columns: `id_img`, `true_ppm`, `pred_rf_ppm`, `pred_xgb_ppm`, `diff_rf_pct`, `diff_xgb_pct`.
 
-### Ghi chú về thông tin điện thoại
+### Note on Device Information
 
-Phiên bản hiện tại **không sử dụng** bất kỳ thông tin nào về dòng máy làm đặc trưng huấn luyện. Các phiên bản trước huấn luyện riêng từng thiết bị, nhưng điều đó gây khó khăn khi gặp thiết bị mới. Mô hình chung đơn giản hơn và áp dụng được cho mọi ảnh.
+The current version **does not use** any device information as a training feature. Previous versions trained separate models per device, which made it difficult to support new devices. The global model is simpler and works for all images.
 
-### Yêu cầu hệ thống
+### System Requirements
 
-* Python 3.8 trở lên.
-* Bộ nhớ đủ để xử lý ảnh và huấn luyện mô hình (nên dùng môi trường có GPU cho XGBoost nếu dữ liệu lớn).
+* Python 3.8 or higher.
+* Sufficient memory for image processing and model training (GPU recommended for XGBoost with large datasets).
 
-### Giấy phép
-
-Dự án được phân phối theo giấy phép MIT. Bạn có thể tự do sử dụng và chỉnh sửa mã nguồn.
+### License
+```
+This project is distributed under the MIT License. You are free to use and modify the source code.
 
 ```
 
-README này đã được viết lại để phản ánh mô hình chung không cần dữ liệu điện thoại và chỉ tập trung vào bài toán hồi quy nồng độ ppm.
-```
