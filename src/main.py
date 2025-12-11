@@ -3,8 +3,8 @@ import os
 from config import DATA_DIR, META_COLORS
 from processing import process_data
 from normalize import getFeature
-from model import train_models
-from predict import predictImage
+from model import train_models, train_regressors
+from predict import predictImage, predictImageRegression
 
 def e2e_pipeline() -> None:
     try:
@@ -35,9 +35,21 @@ def e2e_pipeline() -> None:
             n_estimators=1000,
             n_splits=5
         )
-        print('\nTraining Model Success!\n')
+        print('\nTraining Classification Model Success!\n')
     except Exception as e:
-        print(f'\nTraining Model Fail: {e}\n')
+        print(f'\nTraining Classification Model Fail: {e}\n')
+
+    try:
+        train_regressors(
+            meta_path=META_COLORS,
+            dir_path=os.path.join(DATA_DIR, 'csv'),
+            out_path=os.path.join(DATA_DIR, 'models'),
+            n_estimators=1000,
+            n_splits=5
+        )
+        print('\nTraining Regression Model Success!\n')
+    except Exception as e:
+        print(f'\nTraining Regression Model Fail: {e}\n')
 
 def predict_ui():
     out_path = os.path.join(DATA_DIR, 'predict')
@@ -67,13 +79,28 @@ def predict_ui():
                     print('Invalid selection. Please try again.')
 
                 print(f"Selected phone: {phone}\n")
+                
+                # Classification prediction
                 predictImage(
                     image_path=image_path,
                     out_path=out_path,
                     phone=phone,
                     summary_path=os.path.join(DATA_DIR, 'models', 'classification_summary.csv')
                 )
-                print("Prediction completed.\n")
+                print("Classification prediction completed.\n")
+                
+                # Regression prediction
+                try:
+                    predictImageRegression(
+                        image_path=image_path,
+                        out_path=out_path,
+                        phone=phone,
+                        summary_path=os.path.join(DATA_DIR, 'models', 'regression_summary.csv')
+                    )
+                    print("Regression prediction completed.\n")
+                except Exception as e:
+                    print(f"Regression prediction error: {e}\n")
+                    
             except Exception as e:
                 print(f"Prediction Error: {e}")
         elif choice == 'n':
